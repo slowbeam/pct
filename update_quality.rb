@@ -11,6 +11,6 @@ def update_quality(awards)
     end
 
     award.expires_in -= 1
-    award.handle_expired if !award.active?
+    award.handle_expired unless award.active?
   end
 end
