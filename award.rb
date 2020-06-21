@@ -1,5 +1,10 @@
 class Award
-  attr_accessor :name, :expires_in, :quality
+  attr_accessor :expires_in, :quality
+  attr_reader :name
+  BLUE_COMPARE = 'Blue Compare'.freeze
+  BLUE_DISTINCTION_PLUS = 'Blue Distinction Plus'.freeze
+  BLUE_FIRST = 'Blue First'.freeze
+  BLUE_STAR = 'Blue Star'.freeze
 
   def initialize(name, expires_in, quality)
     @name = name
@@ -7,33 +12,47 @@ class Award
     @quality = quality
   end
 
-  def active?
-    @expires_in >= 0
+  def calculate_quality
+    return increment_quality if incrementable_award?
+
+    decrement_quality
   end
+
+  def calculate_expiration
+    @expires_in -= 1
+    handle_expired unless active?
+  end
+
+  private
 
   def decrement_quality
     return if @quality <= 0
+    return @quality -= 2 if @name == BLUE_STAR
 
-    @quality -= @name == 'Blue Star' ? 2 : 1
+    @quality -= 1
   end
 
   def increment_quality
     return if @quality >= 50
-
     @quality += 1
-    increment_active_blue_compare
-  end
-
-  def increment_active_blue_compare
-    return if @name != 'Blue Compare' || !active?
+    return if @name != BLUE_COMPARE || !active?
 
     @quality += 1 if @expires_in < 11
     @quality += 1 if @expires_in < 6
   end
 
-  def handle_expired
-    return @quality = 0 if @name == 'Blue Compare'
+  def incrementable_award?
+    [BLUE_FIRST, BLUE_COMPARE].include?(name)
+  end
 
-    @name != 'Blue First' ? decrement_quality : increment_quality
+  def handle_expired
+    return @quality = 0 if @name == BLUE_COMPARE
+    return decrement_quality unless @name == BLUE_FIRST
+
+    increment_quality
+  end
+
+  def active?
+    @expires_in >= 0
   end
 end
